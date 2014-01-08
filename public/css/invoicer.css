@@ -1,0 +1,27 @@
+div.table
+{
+}
+
+div.row.table-header
+{
+	border-bottom: 1px solid #777;
+}
+
+div.row.table-header div.columns
+{
+	font-weight: bold;
+	padding-top: 10px;
+	padding-bottom: 5px;
+}
+
+div.row.table-header
+{
+	margin-bottom: 10px;
+}
+
+div.row.table-row
+{
+	margin-bottom: 5px;
+	border-bottom: 1px solid #CCC;
+	padding-bottom: 3px;
+}
