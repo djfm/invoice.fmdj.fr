@@ -25,3 +25,37 @@ div.row.table-row
 	border-bottom: 1px solid #CCC;
 	padding-bottom: 3px;
 }
+
+label.prefix.recap-header
+{
+	text-decoration: underline;
+	text-align: right;
+	padding-right: 5px;
+}
+
+label.postfix.recap, label.postfix.recap-details
+{
+	border-left: 1px solid #ccc;
+}
+
+label.postfix.recap
+{
+	font-weight: bold;
+}
+
+label.prefix.recap-header, label.postfix.recap, label.postfix.recap-details
+{
+	margin-bottom: 0px;
+	cursor: default;
+}
+
+div.summary>div.row:not(:first-of-type) label
+{
+	border-top: 0;
+}
+
+div.row.discount
+{
+	color: green;
+	font-style: italic;
+}

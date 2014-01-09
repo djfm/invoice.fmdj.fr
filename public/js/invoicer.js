@@ -150,8 +150,160 @@ invoicer.controller('Invoicer', function($scope){
 		delete $scope.order.global_discounts[reference];
 	};
 
+	$scope.roundAmount = function (amt)
+	{
+		return (Math.round(100*amt)/100).toFixed(2);
+	};
+
 	$scope.recomputeInvoice = function()
 	{
+		$scope.invoice = {};
+		
+		$scope.invoice_total = {
+			total_products_before_tax: 0,
+			additional_fees_before_tax: 0
+		};
+
+		$scope.additional_recap = {
+
+		};
+
+		// Lines Total Before Tax
+		var ltbf = 0;
+		var line_weights = {
+			products: {
+
+			},
+			additional: {
+
+			}
+		}
+
+		for(var reference in $scope.order.products)
+		{
+			var product = $scope.products[reference];
+			var details = $scope.order.products[reference];
+
+			var nupbt = product.price;
+			if(details.discount.type === 'percent')
+			{
+				nupbt *= (1-details.discount.amount);
+			}
+			else if(details.discount.type === 'monetary_units')
+			{
+				nupbt -= details.discount.amount;
+			}
+
+			var tax_rate = $scope.taxes[$scope.order.products[reference].tax].rate;
+
+			// Line Cost Before Tax
+			var lcbt = nupbt*details.quantity;
+			// Line Cost Before Tax Before Discounts
+			var lcbtbt = product.price*details.quantity;
+			ltbf += lcbtbt;
+			line_weights.products[reference] = {
+				amount: lcbtbt,
+				weight: 0,
+				tax_rate: tax_rate,
+				tax_base: lcbt
+			};
+
+			$scope.invoice[reference] = {
+				quantity: details.quantity,
+				unit_price_before_tax: $scope.roundAmount(product.price),
+				discount: details.discount,
+				net_unit_price_before_tax: $scope.roundAmount(nupbt),
+				lcbtbt: lcbtbt,
+				line_cost_before_tax: $scope.roundAmount(lcbt),
+				tax_rate: tax_rate
+			};
+
+			$scope.invoice_total.total_products_before_tax
+			+= lcbt;
+		}
+
+	
+		for(var reference in $scope.order.additional)
+		{
+			var details = $scope.order.additional[reference];
+			$scope.additional_recap[reference] = $scope.roundAmount(details.price);
+			$scope.invoice_total.additional_fees_before_tax += details.price;
+			line_weights.additional[reference] = {
+				amount: details.price,
+				weight: 0,
+				tax_rate: $scope.taxes[details.tax].rate,
+				tax_base: details.price
+			}
+		}
+
+
+		$scope.invoice_total.total_before_tax = 
+		$scope.invoice_total.total_products_before_tax
+		+ $scope.invoice_total.additional_fees_before_tax;
+
+		ltbf += $scope.invoice_total.additional_fees_before_tax;
+
+		var total = $scope.invoice_total.total_before_tax;
+		var global_discount = 0;
+		$scope.invoice_discounts = {}; 
+		for(var reference in $scope.order.global_discounts)
+		{
+			var discount;
+			var details = $scope.order.global_discounts[reference];
+			if(details.type === 'percent')
+			{
+				discount = details.amount*total;
+			}
+			else if(details.type === 'monetary_units')
+			{
+				discount = details.amount;
+			}
+			global_discount += discount;
+			var ref = reference;
+			if(details.type === 'percent')
+			{
+				ref+= " (-"+(100*details.amount).toFixed(2)+"%)";
+			}
+			$scope.invoice_discounts[ref] = {
+				amount: discount
+			};
+		}
+		$scope.invoice_total.global_discount_before_tax = global_discount;
+		$scope.invoice_total.total_before_tax -= global_discount;
+
+		$scope.tax_breakdown = {};
+		var total_tax = 0;
+		var types = ['products', 'additional'];
+		for(var t in types)
+		{
+			var type = types[t];
+			for(var w in line_weights[type])
+			{
+				var lw = line_weights[type][w];
+				lw.weight = lw.amount / ltbf;
+				lw.tax = (lw.tax_base-lw.weight*global_discount)*lw.tax_rate;
+				total_tax += lw.tax;
+				$scope.tax_breakdown[lw.tax_rate] = 
+				($scope.tax_breakdown[lw.tax_rate] || 0) + lw.tax;
+			}
+		}
+		$scope.invoice_total.total_tax = total_tax;
+
+		// Round final amounts
+		$scope.invoice_total.total_with_tax = $scope.roundAmount(
+			$scope.invoice_total.total_before_tax
+			+ $scope.invoice_total.total_tax
+		);
+		$scope.invoice_total.total_products_before_tax = 
+		$scope.roundAmount($scope.invoice_total.total_products_before_tax);
+		$scope.invoice_total.additional_fees_before_tax =
+		$scope.roundAmount($scope.invoice_total.additional_fees_before_tax);
+		$scope.invoice_total.total_before_tax =
+		$scope.roundAmount($scope.invoice_total.total_before_tax);
+		$scope.invoice_total.global_discount_before_tax =
+		$scope.roundAmount($scope.invoice_total.global_discount_before_tax);
+		$scope.invoice_total.total_tax =
+		$scope.roundAmount($scope.invoice_total.total_tax);
 	};
 
 	$scope.recomputeInvoice();
