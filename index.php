@@ -9,6 +9,7 @@
     <script src="/public/vendor/foundation/js/modernizr.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.min.js"></script>
     <script src="/public/js/invoicer.js"></script>
+    <script src="/public/js/InvoicerController.js"></script>
   </head>
   <body ng-app='invoicer' ng-controller='Invoicer'>
     <div class="row">
