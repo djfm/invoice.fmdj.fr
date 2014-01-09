@@ -73,7 +73,8 @@ invoicer.controller('Invoicer', function($scope, $location){
 			}
 		},
 		tax_rule: 'total',
-		rounding_mode: 'half_up'
+		rounding_mode: 'half_up',
+		split_global_discount_on: 'line_price_after_discount'
 	};
 
 	for(var i in inputs)
@@ -104,6 +105,11 @@ invoicer.controller('Invoicer', function($scope, $location){
 		bankers: 'Banker\'s',
 		inferior: 'Inferior',
 		superior: 'Superior'
+	};
+
+	$scope.discount_splitting_methods = {
+		line_price_after_discount: 'After line discounts',
+		line_price_before_discount: 'Before line discounts'
 	};
 
 	$scope.createProduct = function()
@@ -250,6 +256,7 @@ invoicer.controller('Invoicer', function($scope, $location){
 			ltbf += lcbtbt;
 			price_lines.products[reference] = {
 				amount: lcbtbt,
+				amount_after_line_discounts: lcbt,
 				weight: 0,
 				tax_rate: tax_rate,
 				tax_base: lcbt,
@@ -278,6 +285,7 @@ invoicer.controller('Invoicer', function($scope, $location){
 			$scope.invoice_total.additional_fees_before_tax += details.price;
 			price_lines.additional[reference] = {
 				amount: details.price,
+				amount_after_line_discounts: details.price,
 				weight: 0,
 				tax_rate: $scope.taxes[details.tax].rate,
 				tax_base: details.price,
@@ -293,7 +301,14 @@ invoicer.controller('Invoicer', function($scope, $location){
 		ltbf += $scope.invoice_total.additional_fees_before_tax;
 
 		foreachPriceLine(function(type, lw){
-			lw.weight = lw.amount / ltbf;
+			if($scope.split_global_discount_on === 'line_price_after_discount')
+			{
+				lw.weight = lw.amount_after_line_discounts / $scope.invoice_total.total_before_tax;
+			}
+			else
+			{
+				lw.weight = lw.amount / ltbf;
+			}
 		});
 
 		/* Compute Global Discounts */
