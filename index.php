@@ -2,7 +2,7 @@
 <html class="no-js" lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--meta name="viewport" content="width=device-width, initial-scale=1.0" /-->
     <title>Invoicer Demo</title>
     <link rel="stylesheet" href="/public/vendor/foundation/css/foundation.css" />
     <link rel="stylesheet" href="/public/css/invoicer.css" />
@@ -21,7 +21,11 @@
       <div class="large-12 columns">
       	<div class="panel">
 	       <h3>Welcome!</h3>
-	       <p>This tool will show you samples of invoice calculation. Click on the titles to open the sections!</p>
+	       <p>
+	       	This tool is used to demonstrate how invoices should be computed according to different parameters.
+	       	<BR/>
+	       	Click on the titles to open the sections!
+	       </p>
       	</div>
       </div>
     </div>
