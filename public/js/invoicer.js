@@ -68,20 +68,39 @@ invoicer.controller('Invoicer', function($scope){
 					amount: 4
 				}
 			}
-			
 		},
-
-		discount_types: {
-			none: 'None',
-			monetary_units: 'Money',
-			percent: 'Percent'
-		}
+		tax_rule: 'total',
+		rounding_mode: 'half_up'
 	};
 
 	for(var i in inputs)
 	{
 		$scope[i] = inputs[i];
 	}
+
+	$scope.inputs = inputs;
+	$scope.$watch('inputs', function(){
+		$scope.recomputeInvoice();
+	}, true);
+
+	$scope.discount_types = {
+		none: 'None',
+		monetary_units: 'Money',
+		percent: 'Percent'
+	};
+
+	$scope.tax_rules = {
+		item: 'Item',
+		line: 'Line',
+		total: 'Total'
+	};
+
+	$scope.rounding_modes = {
+		half_up: 'Half Up',
+		bankers: 'Banker\'s',
+		inferior: 'Inferior',
+		superior: 'Superior'
+	};
 
 	$scope.createProduct = function()
 	{
@@ -152,7 +171,7 @@ invoicer.controller('Invoicer', function($scope){
 
 	$scope.roundAmount = function (amt)
 	{
-		return (Math.round(100*amt)/100).toFixed(2);
+		return Math.round(100*amt)/100
 	};
 
 	$scope.recomputeInvoice = function()
@@ -205,7 +224,8 @@ invoicer.controller('Invoicer', function($scope){
 				amount: lcbtbt,
 				weight: 0,
 				tax_rate: tax_rate,
-				tax_base: lcbt
+				tax_base: lcbt,
+				quantity: details.quantity
 			};
 
 			$scope.invoice[reference] = {
@@ -232,7 +252,8 @@ invoicer.controller('Invoicer', function($scope){
 				amount: details.price,
 				weight: 0,
 				tax_rate: $scope.taxes[details.tax].rate,
-				tax_base: details.price
+				tax_base: details.price,
+				quantity: 1
 			}
 		}
 
@@ -281,7 +302,18 @@ invoicer.controller('Invoicer', function($scope){
 			{
 				var lw = line_weights[type][w];
 				lw.weight = lw.amount / ltbf;
-				lw.tax = (lw.tax_base-lw.weight*global_discount)*lw.tax_rate;
+				if($scope.tax_rule === 'total')
+				{
+					lw.tax = (lw.tax_base-lw.weight*global_discount)*lw.tax_rate;
+				}
+				else if($scope.tax_rule === 'line')
+				{
+					lw.tax = $scope.roundAmount((lw.tax_base-lw.weight*global_discount)*lw.tax_rate);
+				}
+				else if($scope.tax_rule === 'item')
+				{
+					lw.tax = lw.quantity*$scope.roundAmount((lw.tax_base-lw.weight*global_discount)*lw.tax_rate/lw.quantity);
+				}
 				total_tax += lw.tax;
 				$scope.tax_breakdown[lw.tax_rate] = 
 				($scope.tax_breakdown[lw.tax_rate] || 0) + lw.tax;
@@ -306,5 +338,5 @@ invoicer.controller('Invoicer', function($scope){
 		$scope.roundAmount($scope.invoice_total.total_tax);
 	};
 
-	$scope.recomputeInvoice();
+	//$scope.recomputeInvoice();
 });

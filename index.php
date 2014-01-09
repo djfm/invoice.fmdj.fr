@@ -21,7 +21,7 @@
       <div class="large-12 columns">
       	<div class="panel">
 	       <h3>Welcome!</h3>
-	       <p>This tool will show you samples of invoice calculation.</p>
+	       <p>This tool will show you samples of invoice calculation. Click on the titles to open the sections!</p>
       	</div>
       </div>
     </div>
@@ -29,7 +29,7 @@
 	<div class="row">
 		<div class="large-12 columns">
 			<div class="panel">
-				<h3>Products</h3>
+				<h3 class="collapsible collapsed">Products</h3>
 				
 				<div id="products"  class="table">
 					<div class="row table-header">
@@ -72,7 +72,7 @@
 	<div class="row">
 		<div class="large-12 columns">
 			<div class="panel">
-				<h3>Taxes</h3>
+				<h3 class="collapsible collapsed">Taxes</h3>
 				
 				<div id="taxes" class="table">
 					<div class="row table-header">
@@ -115,9 +115,9 @@
 	<div class="row">
 		<div class="large-12 columns">
 			<div class="panel">
-				<h3>Order - Products</h3>
+				<h3 class="collapsible collapsed">Order - Products</h3>
 				
-				<div id="order" class="table">
+				<div id="order-products" class="table">
 					<div class="row table-header">
 						<div class="large-2 columns">
 							Reference
@@ -177,9 +177,10 @@
 							</div>
 						</div>
 					</form>
+				</div>
 					
-					<h3>Order - Additional</h3>
-				
+				<h3 class="collapsible collapsed">Order - Additional</h3>
+				<div id='order-additional'>
 					<div class="row table-header">
 						<div class="large-4 columns">
 							Additional Fee
@@ -221,9 +222,10 @@
 							</div>
 						</div>
 					</form>
+				</div>
 
-					<h3>Order - Global Discounts</h3>
-			
+				<h3 class="collapsible collapsed">Order - Global Discounts</h3>
+				<div id='order-discounts'>
 					<div class="row table-header">
 						<div class="large-4 columns">
 							Discount Name
@@ -273,189 +275,208 @@
 	<div class="row">
 		<div class="large-12 columns">
 			<div class="panel">
-				<h3>Invoice</h3>
-				
-				<div id="invoice" class="table">
-					<div class="row table-header">
-						<div class="large-2 columns">
-							Reference
-						</div>
-						<div class="large-1 columns">
-							Quantity
-						</div>
-						<div class="large-2 columns">
-							Unit Price<BR/>(Before Tax)
-						</div>
-						<div class="large-2 columns">
-							Discount
-						</div>
-						<div class="large-2 columns">
-							Net Unit Price<BR/>(Before Tax)
-						</div>
-						<div class="large-2 columns">
-							Line Cost<BR/>(Before Tax)
-						</div>
-						<div class="large-1 columns">
-							Tax Rate
-						</div>
-					</div>
-					<div class="row table-row" ng-repeat='(reference, line) in invoice'>
-						<div class="large-2 columns">
-							{{reference}}
-						</div>
-						<div class="large-1 columns">
-							{{line.quantity}}
-						</div>
-						<div class="large-2 columns">
-							{{line.unit_price_before_tax}}
-						</div>
-						<div class="large-2 columns">
-							<div ng-if="line.discount.type === 'percent'">
-								- {{(line.discount.amount*100).toFixed(2)}}%
-							</div>
-							<div ng-if="line.discount.type !== 'percent'">
-								- {{line.discount.amount}} m.u.
-							</div>
-						</div>
-						<div class="large-2 columns">
-							{{line.net_unit_price_before_tax}}
-						</div>
-						<div class="large-2 columns">
-							{{line.line_cost_before_tax}}
-						</div>
-						<div class="large-1 columns">
-							{{(line.tax_rate*100).toFixed(2)}}%
-						</div>
-					</div>
-					<div class="row table-row discount" ng-repeat='(reference, line) in invoice_discounts'>
-						<div class="large-9 columns">
-							{{reference}}
-						</div>
-						<div class="large-3 columns">
-							- {{roundAmount(line.amount)}}
-						</div>
-						
-					</div>
+				<h3 class="collapsible">Invoice</h3>
+				<div id="invoice">
 					<div class="row">
-						<div class="large-6 columns" id="tax_breakdown">
-							<div class="row">
-								<div class="large-12 columns">
-									<h4>Tax Breakdown</h4>
-								</div>
-							</div>
-							<div class="summary">
-								<div class="row collapse" ng-repeat="(rate, amount) in tax_breakdown">
-									<div class="large-6 columns">
-										<label class="prefix recap-header">
-											{{(rate*100).toFixed(2)}}%
-										</label>
-									</div>
-									<div class="large-6 columns">
-										<label class="postfix recap-details">
-											{{roundAmount(amount)}}
-										</label>
-									</div>
+						<div class="large-6 columns">
+							<div class="row collapse">
+								<div class="large-6 columns"><label for="tax_rule" class="prefix">Tax Rule</label></div>
+								<div class="large-6 columns">
+									<select ng-change='recomputeInvoice()' id="tax_rule" ng-model='tax_rule' ng-options='key as value for (key, value) in tax_rules'></select>
 								</div>
 							</div>
 						</div>
-						<div class="large-6 columns" id="invoice_total">
-							<div class="row">
-								<div class="large-12 columns">
-									<h4>Invoice Summary</h4>
+						<div class="large-6 columns">
+							<div class="row collapse">
+								<div class="large-6 columns"><label for="rounding_mode" class="prefix">Rounding Mode</label></div>
+								<div class="large-6 columns">
+									<select ng-change='recomputeInvoice()' id="rounding_mode" ng-model='rounding_mode' ng-options='key as value for (key, value) in rounding_modes'></select>
 								</div>
 							</div>
-							<div class="summary">
-								<div class="row collapse">
-									<div class="large-6 columns">
-										<label class="prefix recap-header">
-											Total Products Before Tax
-										</label>
-									</div>
-									<div class="large-6 columns">
-										<label class="postfix recap">
-											{{invoice_total.total_products_before_tax}}
-										</label>
+						</div>
+					</div>
+					
+					<div id="invoice" class="table">
+						<div class="row table-header">
+							<div class="large-2 columns">
+								Reference
+							</div>
+							<div class="large-1 columns">
+								Quantity
+							</div>
+							<div class="large-2 columns">
+								Unit Price<BR/>(Before Tax)
+							</div>
+							<div class="large-2 columns">
+								Discount
+							</div>
+							<div class="large-2 columns">
+								Net Unit Price<BR/>(Before Tax)
+							</div>
+							<div class="large-2 columns">
+								Line Cost<BR/>(Before Tax)
+							</div>
+							<div class="large-1 columns">
+								Tax Rate
+							</div>
+						</div>
+						<div class="row table-row" ng-repeat='(reference, line) in invoice'>
+							<div class="large-2 columns">
+								{{reference}}
+							</div>
+							<div class="large-1 columns">
+								{{line.quantity}}
+							</div>
+							<div class="large-2 columns">
+								{{line.unit_price_before_tax}}
+							</div>
+							<div class="large-2 columns">
+								<div ng-if="line.discount.type === 'percent'">
+									- {{(line.discount.amount*100).toFixed(2)}}%
+								</div>
+								<div ng-if="line.discount.type !== 'percent'">
+									- {{line.discount.amount}} m.u.
+								</div>
+							</div>
+							<div class="large-2 columns">
+								{{line.net_unit_price_before_tax}}
+							</div>
+							<div class="large-2 columns">
+								{{line.line_cost_before_tax}}
+							</div>
+							<div class="large-1 columns">
+								{{(line.tax_rate*100).toFixed(2)}}%
+							</div>
+						</div>
+						<div class="row table-row discount" ng-repeat='(reference, line) in invoice_discounts'>
+							<div class="large-9 columns">
+								{{reference}}
+							</div>
+							<div class="large-3 columns">
+								- {{roundAmount(line.amount)}}
+							</div>
+							
+						</div>
+						<div class="row">
+							<div class="large-6 columns" id="tax_breakdown">
+								<div class="row">
+									<div class="large-12 columns">
+										<h4>Tax Breakdown</h4>
 									</div>
 								</div>
-								<div class="row collapse" ng-repeat="(reference, price) in additional_recap">
-									<div class="large-6 columns">
-										<label class="prefix recap-header">
-											{{reference}}
-										</label>
-									</div>
-									<div class="large-6 columns">
-										<label class="postfix recap-details">
-											{{price}}
-										</label>
-									</div>
-								</div>
-								<div class="row collapse">
-									<div class="large-6 columns">
-										<label class="prefix recap-header">
-											Additional Fees Before Tax
-										</label>
-									</div>
-									<div class="large-6 columns">
-										<label class="postfix recap">
-											{{invoice_total.additional_fees_before_tax}}
-										</label>
+								<div class="summary">
+									<div class="row collapse" ng-repeat="(rate, amount) in tax_breakdown">
+										<div class="large-6 columns">
+											<label class="prefix recap-header">
+												{{(rate*100).toFixed(2)}}%
+											</label>
+										</div>
+										<div class="large-6 columns">
+											<label class="postfix recap-details">
+												{{roundAmount(amount)}}
+											</label>
+										</div>
 									</div>
 								</div>
-								<div class="row collapse">
-									<div class="large-6 columns">
-										<label class="prefix recap-header">
-											Global Discounts Before Tax
-										</label>
-									</div>
-									<div class="large-6 columns">
-										<label class="postfix recap">
-											- {{invoice_total.global_discount_before_tax}}
-										</label>
+							</div>
+							<div class="large-6 columns" id="invoice_total">
+								<div class="row">
+									<div class="large-12 columns">
+										<h4>Invoice Summary</h4>
 									</div>
 								</div>
-								<div class="row collapse">
-									<div class="large-6 columns">
-										<label class="prefix recap-header">
-											Total Before Tax
-										</label>
+								<div class="summary">
+									<div class="row collapse">
+										<div class="large-6 columns">
+											<label class="prefix recap-header">
+												Total Products Before Tax
+											</label>
+										</div>
+										<div class="large-6 columns">
+											<label class="postfix recap">
+												{{invoice_total.total_products_before_tax}}
+											</label>
+										</div>
 									</div>
-									<div class="large-6 columns">
-										<label class="postfix recap">
-											{{invoice_total.total_before_tax}}
-										</label>
+									<div class="row collapse" ng-repeat="(reference, price) in additional_recap">
+										<div class="large-6 columns">
+											<label class="prefix recap-header">
+												{{reference}}
+											</label>
+										</div>
+										<div class="large-6 columns">
+											<label class="postfix recap-details">
+												{{price}}
+											</label>
+										</div>
 									</div>
-								</div>
-								<div class="row collapse">
-									<div class="large-6 columns">
-										<label class="prefix recap-header">
-											Total Tax
-										</label>
+									<div class="row collapse">
+										<div class="large-6 columns">
+											<label class="prefix recap-header">
+												Additional Fees Before Tax
+											</label>
+										</div>
+										<div class="large-6 columns">
+											<label class="postfix recap">
+												{{invoice_total.additional_fees_before_tax}}
+											</label>
+										</div>
 									</div>
-									<div class="large-6 columns">
-										<label class="postfix recap">
-											{{invoice_total.total_tax}}
-										</label>
+									<div class="row collapse">
+										<div class="large-6 columns">
+											<label class="prefix recap-header">
+												Global Discounts Before Tax
+											</label>
+										</div>
+										<div class="large-6 columns">
+											<label class="postfix recap">
+												- {{invoice_total.global_discount_before_tax}}
+											</label>
+										</div>
 									</div>
-								</div>
-								<div class="row collapse">
-									<div class="large-6 columns">
-										<label class="prefix recap-header">
-											Total To Pay With Tax
-										</label>
+									<div class="row collapse">
+										<div class="large-6 columns">
+											<label class="prefix recap-header">
+												Total Before Tax
+											</label>
+										</div>
+										<div class="large-6 columns">
+											<label class="postfix recap">
+												{{invoice_total.total_before_tax}}
+											</label>
+										</div>
 									</div>
-									<div class="large-6 columns">
-										<label class="postfix recap">
-											{{invoice_total.total_with_tax}}
-										</label>
+									<div class="row collapse">
+										<div class="large-6 columns">
+											<label class="prefix recap-header">
+												Total Tax
+											</label>
+										</div>
+										<div class="large-6 columns">
+											<label class="postfix recap">
+												{{invoice_total.total_tax}}
+											</label>
+										</div>
+									</div>
+									<div class="row collapse">
+										<div class="large-6 columns">
+											<label class="prefix recap-header">
+												Total To Pay With Tax
+											</label>
+										</div>
+										<div class="large-6 columns">
+											<label class="postfix recap">
+												{{invoice_total.total_with_tax}}
+											</label>
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
+
+					<button class="success" ng-click='recomputeInvoice()'>Re Compute Invoice!</button>
 				</div>
-
-				<button class="success" ng-click='recomputeInvoice()'>Re Compute Invoice!</button>
-
 			</div>
 		</div>
 	</div>
@@ -464,6 +485,12 @@
     <script src="/public/vendor/foundation/js/foundation.min.js"></script>
     <script>
     	$(document).foundation();
+    	$(document).ready(function(){
+    		$('.collapsible').click(function(){
+    			var me = $(this);
+    			me.toggleClass('collapsed');
+    		});
+    	});
     </script>
   </body>
 </html>

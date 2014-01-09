@@ -9,7 +9,7 @@ div.row.table-header
 
 div.row.table-header div.columns
 {
-	font-weight: bold;
+	font-style: italic;
 	padding-top: 10px;
 	padding-bottom: 5px;
 }
@@ -58,4 +58,14 @@ div.row.discount
 {
 	color: green;
 	font-style: italic;
+}
+
+h3.collapsible
+{
+	cursor: pointer;
+}
+
+h3.collapsible.collapsed+div
+{
+	display: none;
 }
