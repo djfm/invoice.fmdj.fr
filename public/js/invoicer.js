@@ -1,8 +1,11 @@
-var invoicer = angular.module('invoicer', []);
+var invoicer = angular.module('invoicer', [], function($locationProvider) {
+  $locationProvider.html5Mode(true);
+});
 
-invoicer.controller('Invoicer', function($scope){
+invoicer.controller('Invoicer', function($scope, $location){
 
-	var inputs = {
+	var provided_inputs = $location.search().inputs;
+	var inputs = (provided_inputs && JSON.parse(provided_inputs)) || {
 		products: {
 			'PrestaShop Mug': {
 				price: 10
@@ -367,7 +370,12 @@ invoicer.controller('Invoicer', function($scope){
 		$scope.roundAmount($scope.invoice_total.global_discount_before_tax);
 		$scope.invoice_total.total_tax =
 		$scope.roundAmount($scope.invoice_total.total_tax);
+
+		$scope.makeLink();
 	};
 
-	//$scope.recomputeInvoice();
+	$scope.makeLink = function()
+	{
+		$scope.url = location.origin+"?inputs="+encodeURIComponent(angular.toJson($scope.inputs)); 
+	};
 });

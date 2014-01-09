@@ -476,6 +476,7 @@
 					</div>
 
 					<button class="success" ng-click='recomputeInvoice()'>Re Compute Invoice!</button>
+					<p><a href="{{url}}">(Link to This Invoice)</a></p>
 				</div>
 			</div>
 		</div>
