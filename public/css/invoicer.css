@@ -69,3 +69,8 @@ h3.collapsible.collapsed+div
 {
 	display: none;
 }
+
+div#invoice-summaries
+{
+	margin-top: 20px; 
+}

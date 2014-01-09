@@ -335,7 +335,7 @@
 									- {{(line.discount.amount*100).toFixed(2)}}%
 								</div>
 								<div ng-if="line.discount.type !== 'percent'">
-									- {{line.discount.amount}} m.u.
+									- {{line.discount.net_amount}} m.u.
 								</div>
 							</div>
 							<div class="large-2 columns">
@@ -357,7 +357,7 @@
 							</div>
 							
 						</div>
-						<div class="row">
+						<div class="row" id="invoice-summaries">
 							<div class="large-6 columns" id="tax_breakdown">
 								<div class="row">
 									<div class="large-12 columns">
