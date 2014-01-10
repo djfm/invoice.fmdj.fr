@@ -312,7 +312,6 @@ invoicer.controller('Invoicer', function($scope, $location){
 
 	$scope.makeLink = function()
 	{
-		console.log(angular.toJson($scope.inputs));
 		$scope.url = location.origin+"?inputs="+encodeURIComponent(angular.toJson($scope.inputs)); 
 	};
 });
