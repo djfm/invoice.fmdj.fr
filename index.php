@@ -283,7 +283,7 @@
 				<h3 class="collapsible">Invoice</h3>
 				<div id="invoice">
 					<div class="row">
-						<div class="large-4 columns">
+						<div class="large-6 columns">
 							<div class="row collapse">
 								<div class="small-6 columns"><label for="tax_rule" class="prefix">Tax Rule</label></div>
 								<div class="small-6 columns">
@@ -291,19 +291,11 @@
 								</div>
 							</div>
 						</div>
-						<div class="large-4 columns">
+						<div class="large-6 columns">
 							<div class="row collapse">
 								<div class="small-6 columns"><label for="rounding_mode" class="prefix">Rounding Mode</label></div>
 								<div class="small-6 columns">
 									<select ng-change='recomputeInvoice()' id="rounding_mode" ng-model='rounding_mode' ng-options='key as value for (key, value) in rounding_modes'></select>
-								</div>
-							</div>
-						</div>
-						<div class="large-4 columns">
-							<div class="row collapse">
-								<div class="small-6 columns"><label for="split_global_discount_on" class="prefix">S.G.D.</label></div>
-								<div class="small-6 columns">
-									<select ng-change='recomputeInvoice()' id="split_global_discount_on" ng-model='split_global_discount_on' ng-options='key as value for (key, value) in discount_splitting_methods'></select>
 								</div>
 							</div>
 						</div>
@@ -344,11 +336,13 @@
 								{{line.unit_price_before_tax}}
 							</div>
 							<div class="small-2 columns">
-								<div ng-if="line.discount.type === 'percent'">
-									- {{(line.discount.amount*100).toFixed(2)}}%
-								</div>
-								<div ng-if="line.discount.type !== 'percent'">
-									- {{line.discount.net_amount}} m.u.
+								<div ng-repeat='discount in line.discount'>
+									<div ng-if="discount.type === 'percent'">
+										- {{(discount.amount*100).toFixed(2)}}%
+									</div>
+									<div ng-if="discount.type !== 'percent'">
+										- {{discount.amount}} m.u.
+									</div>
 								</div>
 							</div>
 							<div class="small-2 columns">
@@ -443,7 +437,7 @@
 										</div>
 										<div class="small-6 columns">
 											<label class="postfix recap">
-												- {{invoice_total.global_discount_before_tax}}
+												- {{roundAmount(invoice_total.global_discount_before_tax)}}
 											</label>
 										</div>
 									</div>
@@ -455,7 +449,7 @@
 										</div>
 										<div class="small-6 columns">
 											<label class="postfix recap">
-												{{invoice_total.total_before_tax}}
+												{{roundAmount(invoice_total.total_before_tax)}}
 											</label>
 										</div>
 									</div>
@@ -467,7 +461,7 @@
 										</div>
 										<div class="small-6 columns">
 											<label class="postfix recap">
-												{{invoice_total.total_tax}}
+												{{roundAmount(invoice_total.total_tax)}}
 											</label>
 										</div>
 									</div>
@@ -479,7 +473,7 @@
 										</div>
 										<div class="small-6 columns">
 											<label class="postfix recap">
-												{{invoice_total.total_with_tax}}
+												{{roundAmount(invoice_total.total_with_tax)}}
 											</label>
 										</div>
 									</div>

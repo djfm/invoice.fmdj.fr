@@ -73,8 +73,7 @@ invoicer.controller('Invoicer', function($scope, $location){
 			}
 		},
 		tax_rule: 'total',
-		rounding_mode: 'half_up',
-		split_global_discount_on: 'line_price_after_discount'
+		rounding_mode: 'half_up'
 	};
 
 	for(var i in inputs)
@@ -105,11 +104,6 @@ invoicer.controller('Invoicer', function($scope, $location){
 		bankers: 'Banker\'s',
 		inferior: 'Inferior',
 		superior: 'Superior'
-	};
-
-	$scope.discount_splitting_methods = {
-		line_price_after_discount: 'After line discounts',
-		line_price_before_discount: 'Before line discounts'
 	};
 
 	$scope.createProduct = function()
@@ -181,210 +175,132 @@ invoicer.controller('Invoicer', function($scope, $location){
 
 	$scope.roundAmount = function (amt)
 	{
-		return Math.round(100*amt)/100
+		return roundAmount(amt, $scope.rounding_mode);
 	};
 
 	$scope.recomputeInvoice = function()
 	{
-		$scope.invoice = {};
-		
-		$scope.invoice_total = {
-			total_products_before_tax: 0,
-			additional_fees_before_tax: 0
+		// Prepare data for invoicer
+
+		var settings = {
+			rounding_rule: $scope.tax_rule,
+			rounding_method: $scope.rounding_mode
 		};
+		var lines = {};
+		var discounts = [];
 
-		$scope.additional_recap = {
+		for(var reference in $scope.order.products)
+		{
+			var product = $scope.order.products[reference];
+			lines['product-'+reference] = {
+				quantity: product.quantity,
+				unit_price: $scope.products[reference].price,
+				tax_rate: $scope.taxes[$scope.order.products[reference].tax].rate
+			};
 
-		};
-
-		// Lines Total Before Tax
-		var ltbf = 0;
-		var price_lines = {
-			products: {
-
-			},
-			additional: {
-
+			if(product.discount)
+			{
+				discounts.push({
+					apply_to: ['product-'+reference],
+					discount: product.discount
+				});
 			}
 		}
 
-		function foreachPriceLine(callback)
+		for(var reference in $scope.order.additional)
 		{
-			var types = ['products', 'additional'];
-			for(var t in types)
-			{
-				var type = types[t];
-				for(var w in price_lines[type])
-				{
-					var line = price_lines[type][w];
-					callback(type, line);
-				}
-			}
+			lines['additional-'+reference] = {
+				unit_price: $scope.order.additional[reference].price,
+				tax_rate: $scope.taxes[$scope.order.additional[reference].tax].rate
+			};
+		}
+
+		for(var gd in $scope.order.global_discounts)
+		{
+			discounts.push({
+				name: gd,
+				discount: $scope.order.global_discounts[gd]
+			});
+		}
+
+		var data = computeInvoice(settings, lines, discounts);
+
+		// The things we will need to fill
+
+		/* 
+		Keys = references, values = Objects with keys:
+		- quantity,
+		- unit_price_before_tax,
+		- discount,
+		- net_unit_price_before_tax,
+		- line_cost_before_tax
+		- tax_rate
+		*/
+		$scope.invoice = {};
+
+		$scope.invoice_total = {
+			total_products_before_tax: 0,
+			additional_fees_before_tax: 0,
+			global_discount_before_tax: 0,
+			total_before_tax: 0,
+			total_tax: data.tax_breakdown[null],
+			total_with_tax: 0
 		};
 
 		for(var reference in $scope.order.products)
 		{
-			var product = $scope.products[reference];
-			var details = $scope.order.products[reference];
-			
-			var tax_rate = $scope.taxes[$scope.order.products[reference].tax].rate;
-
-			var details_discount = details.discount.amount;
-
-			// Net Unit Price Before Tax
-			var nupbt = product.price;
-			if(details.discount.type === 'percent')
-			{
-				nupbt *= (1-details.discount.amount);
-			}
-			else if(details.discount.type === 'monetary_units')
-			{
-				nupbt -= details.discount.amount;
-			}
-			else if(details.discount.type === 'monetary_units_with_tax')
-			{
-				nupbt -= details.discount.amount / (1+tax_rate);
-				details_discount = details_discount / (1+tax_rate);
-			}
-
-			details.discount.net_amount = $scope.roundAmount(details_discount);
-
-			// Line Cost Before Tax
-			var lcbt = nupbt*details.quantity;
-			// Line Cost Before Tax Before Discounts
-			var lcbtbt = product.price*details.quantity;
-			ltbf += lcbtbt;
-			price_lines.products[reference] = {
-				amount: lcbtbt,
-				amount_after_line_discounts: lcbt,
-				weight: 0,
-				tax_rate: tax_rate,
-				tax_base: lcbt,
-				quantity: details.quantity
-			};
+			var quantity = $scope.order.products[reference].quantity;
+			var line_price = data.lines['product-'+reference].line_price;
 
 			$scope.invoice[reference] = {
-				quantity: details.quantity,
-				unit_price_before_tax: $scope.roundAmount(product.price),
-				discount: details.discount,
-				net_unit_price_before_tax: $scope.roundAmount(nupbt),
-				lcbtbt: lcbtbt,
-				line_cost_before_tax: $scope.roundAmount(lcbt),
-				tax_rate: tax_rate
-			};
+				quantity: quantity,
+				unit_price_before_tax: $scope.products[reference].price,
+				discount: data.lines['product-'+reference].discounts_applied,
+				net_unit_price_before_tax: line_price/quantity, 
+				line_cost_before_tax: line_price,
+				tax_rate: data.lines['product-'+reference].tax_rate
+			}
 
-			$scope.invoice_total.total_products_before_tax
-			+= lcbt;
+			$scope.invoice_total.total_products_before_tax += line_price;
+		}
+		/*
+		
+		*/
+		$scope.invoice_discounts = {};
+
+		for(var d in data.discounts)
+		{
+			var discount = data.discounts[d];
+			if(!discount.show_on_line)
+			{
+				$scope.invoice_discounts[discount.name] = {amount: discount.discount.actual_amount};
+				$scope.invoice_total.global_discount_before_tax += discount.discount.actual_amount;
+			}
 		}
 
-	
+		/*
+		Object with keys:
+		
+		*/
+		$scope.additional_recap = {};
 		for(var reference in $scope.order.additional)
 		{
-			var details = $scope.order.additional[reference];
-			$scope.additional_recap[reference] = $scope.roundAmount(details.price);
-			$scope.invoice_total.additional_fees_before_tax += details.price;
-			price_lines.additional[reference] = {
-				amount: details.price,
-				amount_after_line_discounts: details.price,
-				weight: 0,
-				tax_rate: $scope.taxes[details.tax].rate,
-				tax_base: details.price,
-				quantity: 1
-			}
+			var add = data.lines['additional-'+reference].line_price;
+			$scope.additional_recap[reference] = add;
+			$scope.invoice_total.additional_fees_before_tax += add;
+
 		}
-
-
-		$scope.invoice_total.total_before_tax = 
-		$scope.invoice_total.total_products_before_tax
-		+ $scope.invoice_total.additional_fees_before_tax;
-
-		ltbf += $scope.invoice_total.additional_fees_before_tax;
-
-		foreachPriceLine(function(type, lw){
-			if($scope.split_global_discount_on === 'line_price_after_discount')
-			{
-				lw.weight = lw.amount_after_line_discounts / $scope.invoice_total.total_before_tax;
-			}
-			else
-			{
-				lw.weight = lw.amount / ltbf;
-			}
-		});
-
-		/* Compute Global Discounts */
-		var total = $scope.invoice_total.total_before_tax;
-		var global_discount = 0;
-		$scope.invoice_discounts = {}; 
-		for(var reference in $scope.order.global_discounts)
-		{
-			var discount;
-			var details = $scope.order.global_discounts[reference];
-			if(details.type === 'percent')
-			{
-				discount = details.amount*total;
-			}
-			else if(details.type === 'monetary_units')
-			{
-				discount = details.amount;
-			}
-			else if(details.type === 'monetary_units_with_tax')
-			{
-				var amount_before_tax = 0;
-				foreachPriceLine(function(type, line){
-					amount_before_tax += details.amount * line.weight / (1+line.tax_rate);
-				});
-				discount = amount_before_tax;
-			}
-
-			global_discount += discount;
-			var ref = reference;
-			if(details.type === 'percent')
-			{
-				ref+= " (-"+(100*details.amount).toFixed(2)+"%)";
-			}
-			$scope.invoice_discounts[ref] = {
-				amount: discount
-			};
-		}
-		$scope.invoice_total.global_discount_before_tax = global_discount;
-		$scope.invoice_total.total_before_tax -= global_discount;
-
-		$scope.tax_breakdown = {};
-		var total_tax = 0;
-		foreachPriceLine(function(type, lw){
-			if($scope.tax_rule === 'total')
-			{
-				lw.tax = (lw.tax_base-lw.weight*global_discount)*lw.tax_rate;
-			}
-			else if($scope.tax_rule === 'line')
-			{
-				lw.tax = $scope.roundAmount((lw.tax_base-lw.weight*global_discount)*lw.tax_rate);
-			}
-			else if($scope.tax_rule === 'item')
-			{
-				lw.tax = lw.quantity*$scope.roundAmount((lw.tax_base-lw.weight*global_discount)*lw.tax_rate/lw.quantity);
-			}
-			total_tax += lw.tax;
-			$scope.tax_breakdown[lw.tax_rate] = 
-			($scope.tax_breakdown[lw.tax_rate] || 0) + lw.tax;
-		});
-		$scope.invoice_total.total_tax = total_tax;
-
-		// Round final amounts
-		$scope.invoice_total.total_with_tax = $scope.roundAmount(
-			$scope.invoice_total.total_before_tax
-			+ $scope.invoice_total.total_tax
-		);
-		$scope.invoice_total.total_products_before_tax = 
-		$scope.roundAmount($scope.invoice_total.total_products_before_tax);
-		$scope.invoice_total.additional_fees_before_tax =
-		$scope.roundAmount($scope.invoice_total.additional_fees_before_tax);
+		
 		$scope.invoice_total.total_before_tax =
-		$scope.roundAmount($scope.invoice_total.total_before_tax);
-		$scope.invoice_total.global_discount_before_tax =
-		$scope.roundAmount($scope.invoice_total.global_discount_before_tax);
-		$scope.invoice_total.total_tax =
-		$scope.roundAmount($scope.invoice_total.total_tax);
+		$scope.invoice_total.total_products_before_tax +
+		$scope.invoice_total.additional_fees_before_tax -
+		$scope.invoice_total.global_discount_before_tax;
+
+		$scope.invoice_total.total_with_tax = $scope.invoice_total.total_before_tax +
+		data.tax_breakdown[null];
+
+		delete data.tax_breakdown[null];
+		$scope.tax_breakdown = data.tax_breakdown;
 
 		$scope.makeLink();
 	};

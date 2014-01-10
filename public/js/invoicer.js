@@ -32,6 +32,7 @@ Each item in this array must have the following properties:
 if the apply_to array is empty or unspecified it is assumed the discount is on the whole order
 - show_on_line: a boolean defining whether to show the discount's impact
 	If unspecified, defaults to true if apply_to has length 1, false otherwise
+- name (optional)
 - discount: a discount object, it has the following properties:
 	- type: either 'percent', 'monetary_units', or 'monetary_units_with_tax'
 	- amount: a number between 0 included and 1 included in case of a 'percent' type, or any positive number else
@@ -54,6 +55,8 @@ the total tax being associated to the null key
 
 function computeInvoice(settings, lines, discounts)
 {
+	console.log(settings);
+	
 	/* 
 	Initialize some variables.
 
@@ -86,7 +89,7 @@ function computeInvoice(settings, lines, discounts)
 	for(var d in discounts)
 	{
 		var discount = discounts[d];
-		discount.actual_amount = 0;
+		discount.discount.actual_amount = 0;
 
 		// Initialize
 		if(discount.apply_to === undefined)
@@ -116,6 +119,8 @@ function computeInvoice(settings, lines, discounts)
 			}
 		};
 
+		var tax_base = 0;
+
 		// Compute current total tax base
 		forEachMatchingLine(function(line){
 			tax_base += line.tax_base;
@@ -131,7 +136,7 @@ function computeInvoice(settings, lines, discounts)
 				line.tax_base *= (1-discount.discount.amount);
 				var delta = (tb - line.tax_base);
 
-				discount.actual_amount += delta;
+				discount.discount.actual_amount += delta;
 
 				if(discount.show_on_line)
 				{
@@ -168,7 +173,7 @@ function computeInvoice(settings, lines, discounts)
 			forEachMatchingLine(function(line){
 				var delta = (line.tax_base / tax_base) * amount;
 				line.tax_base -= delta;
-				discount.actual_amount += delta;
+				discount.discount.actual_amount += delta;
 				if(discount.show_on_line)
 				{
 					line.line_price -= delta;
