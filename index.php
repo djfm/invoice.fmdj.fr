@@ -344,6 +344,7 @@
 										- {{discount.amount}} m.u.
 									</div>
 								</div>
+								<div ng-if='!line.discount || line.discount.length  === 0'>&nbsp;</div>
 							</div>
 							<div class="small-2 columns">
 								{{line.net_unit_price_before_tax}}
@@ -375,7 +376,7 @@
 									<div class="row collapse" ng-repeat="(rate, amount) in tax_breakdown">
 										<div class="small-6 columns">
 											<label class="prefix recap-header">
-												{{(rate*100).toFixed(2)}}%
+												{{rate}}
 											</label>
 										</div>
 										<div class="small-6 columns">

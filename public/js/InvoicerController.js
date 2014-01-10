@@ -175,7 +175,7 @@ invoicer.controller('Invoicer', function($scope, $location){
 
 	$scope.roundAmount = function (amt)
 	{
-		return roundAmount(amt, $scope.rounding_mode);
+		return roundAmount(amt, $scope.rounding_mode).toFixed(2);
 	};
 
 	$scope.recomputeInvoice = function()
@@ -195,15 +195,17 @@ invoicer.controller('Invoicer', function($scope, $location){
 			lines['product-'+reference] = {
 				quantity: product.quantity,
 				unit_price: $scope.products[reference].price,
-				tax_rate: $scope.taxes[$scope.order.products[reference].tax].rate
+				tax_rate: $scope.taxes[$scope.order.products[reference].tax].rate,
+				tax_class: 'Products'
 			};
 
-			if(product.discount)
+			if(product.discount && product.discount.type !== 'none')
 			{
-				discounts.push({
+				var discount = {
 					apply_to: ['product-'+reference],
 					discount: product.discount
-				});
+				};
+				discounts.push(discount);
 			}
 		}
 
@@ -211,7 +213,8 @@ invoicer.controller('Invoicer', function($scope, $location){
 		{
 			lines['additional-'+reference] = {
 				unit_price: $scope.order.additional[reference].price,
-				tax_rate: $scope.taxes[$scope.order.additional[reference].tax].rate
+				tax_rate: $scope.taxes[$scope.order.additional[reference].tax].rate,
+				tax_class: reference
 			};
 		}
 
@@ -219,9 +222,13 @@ invoicer.controller('Invoicer', function($scope, $location){
 		{
 			discounts.push({
 				name: gd,
-				discount: $scope.order.global_discounts[gd]
+				discount: $scope.order.global_discounts[gd],
+				apply_to: Object.keys($scope.order.products).map(function(ref){return 'product-'+ref;}),
+				show_on_line: false
 			});
 		}
+
+		console.log(discounts);
 
 		var data = computeInvoice(settings, lines, discounts);
 

@@ -55,8 +55,6 @@ the total tax being associated to the null key
 
 function computeInvoice(settings, lines, discounts)
 {
-	console.log(settings);
-	
 	/* 
 	Initialize some variables.
 
@@ -208,7 +206,10 @@ function computeInvoice(settings, lines, discounts)
 			line.tax_amount = roundAmount(line.tax_base * line.tax_rate, settings.rounding_method);
 		}
 
-		tax_breakdown[line.tax_rate] = (tax_breakdown[line.tax_rate] || 0) + line.tax_amount;
+		var taxpct = (100*line.tax_rate).toFixed(2)+'%';
+		var taxname = line.tax_class ? line.tax_class+': '+taxpct : taxpct;
+
+		tax_breakdown[taxname] = (tax_breakdown[taxname] || 0) + line.tax_amount;
 		tax_breakdown[null] = (tax_breakdown[null] || 0) + line.tax_amount;
 	}
 
