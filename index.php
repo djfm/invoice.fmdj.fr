@@ -287,7 +287,7 @@
 							<div class="row collapse">
 								<div class="small-6 columns"><label for="tax_rule" class="prefix">Tax Rule</label></div>
 								<div class="small-6 columns">
-									<select ng-change='recomputeInvoice()' id="tax_rule" ng-model='tax_rule' ng-options='key as value for (key, value) in tax_rules'></select>
+									<select ng-change='recomputeInvoice()' id="tax_rule" ng-model='inputs.tax_rule' ng-options='key as value for (key, value) in tax_rules'></select>
 								</div>
 							</div>
 						</div>
@@ -295,7 +295,7 @@
 							<div class="row collapse">
 								<div class="small-6 columns"><label for="rounding_mode" class="prefix">Rounding Mode</label></div>
 								<div class="small-6 columns">
-									<select ng-change='recomputeInvoice()' id="rounding_mode" ng-model='rounding_mode' ng-options='key as value for (key, value) in rounding_modes'></select>
+									<select ng-change='recomputeInvoice()' id="rounding_mode" ng-model='inputs.rounding_mode' ng-options='key as value for (key, value) in rounding_modes'></select>
 								</div>
 							</div>
 						</div>
