@@ -50,7 +50,7 @@
 							{{reference}}
 						</div>
 						<div class="small-7 columns">
-							<input type="number" step="0.1" ng-model="product.price">
+							<input type="number" step="any" ng-model="product.price">
 						</div>
 						<div class="small-2 columns">
 							<button class="postfix alert" ng-click="deleteProduct(reference)">-</button>
@@ -62,7 +62,7 @@
 								<input required ng-model='new_product_reference' type="text">
 							</div>
 							<div class="small-7 columns">
-								<input required ng-model='new_product_price' type="number" step="0.1">
+								<input required ng-model='new_product_price' type="number" step="any">
 							</div>
 							<div class="small-2 columns">
 								<button class="postfix success">+</button>
@@ -93,7 +93,7 @@
 							{{name}}
 						</div>
 						<div class="small-7 columns">
-							<input ng-model="tax.rate" type="number" step="0.01">
+							<input ng-model="tax.rate" type="number" step="any">
 						</div>
 						<div class="small-2 columns">
 							<button class="postfix alert" ng-click="deleteTax(name)">-</button>
@@ -105,7 +105,7 @@
 								<input required ng-model='new_tax_name' type="text">
 							</div>
 							<div class="small-7 columns">
-								<input required ng-model='new_tax_amount' type="number" step="0.01">
+								<input required ng-model='new_tax_amount' type="number" step="any">
 							</div>
 							<div class="small-2 columns">
 								<button class="postfix success">+</button>
@@ -202,7 +202,7 @@
 							{{reference}}
 						</div>
 						<div class="small-4 columns">
-							<input type="number" step="0.1" ng-model="details.price">
+							<input type="number" step="any" ng-model="details.price">
 						</div>
 						<div class="small-2 columns">
 							<select ng-options="key as key for (key, value) in taxes" ng-model="details.tax"></select>
@@ -217,7 +217,7 @@
 								<input required type="text" ng-model="new_order_additional_reference">
 							</div>
 							<div class="small-4 columns">
-								<input required type="number" step="0.1" ng-model="new_order_additional_price">
+								<input required type="number" step="any" ng-model="new_order_additional_price">
 							</div>
 							<div class="small-2 columns">
 								<select required ng-options="key as key for (key, value) in taxes" ng-model="new_order_additional_tax"></select>
