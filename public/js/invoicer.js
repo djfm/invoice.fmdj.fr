@@ -191,11 +191,10 @@ function computeInvoice(settings, lines, discounts)
 	for(var reference in lines)
 	{
 		var line = lines[reference];
-
+		
 		if(settings.rounding_rule === 'item')
 		{
-			line.tax_amount = roundAmount(line.tax_base/line.quantity*line.tax_rate, settings.rounding_method)
-			* line.quantity;
+			line.tax_amount = roundAmount(line.tax_base/line.quantity*line.tax_rate, settings.rounding_method)*line.quantity;
 		}
 		else if(settings.rounding_rule === 'total')
 		{

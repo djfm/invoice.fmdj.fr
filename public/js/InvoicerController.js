@@ -228,8 +228,6 @@ invoicer.controller('Invoicer', function($scope, $location){
 			});
 		}
 
-		console.log(discounts);
-
 		var data = computeInvoice(settings, lines, discounts);
 
 		// The things we will need to fill
