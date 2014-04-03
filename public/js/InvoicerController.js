@@ -183,8 +183,8 @@ invoicer.controller('Invoicer', function($scope, $location){
 		// Prepare data for invoicer
 
 		var settings = {
-			rounding_rule: $scope.tax_rule,
-			rounding_method: $scope.rounding_mode
+			rounding_rule: $scope.inputs.tax_rule,
+			rounding_method: $scope.inputs.rounding_mode
 		};
 		var lines = {};
 		var discounts = [];
